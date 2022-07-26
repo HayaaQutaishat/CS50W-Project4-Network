@@ -1,0 +1,26 @@
+.post_div {
+    border-style: solid;
+    border-width: thin;
+    border-color: #DCDCDC;
+    height: 150px;
+    width: 100%;
+    padding:10px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#time {
+    float: right;
+}
+
+
+.div_profile {
+    border-style: solid;
+    border-width: thin;
+    border-color: #DCDCDC;
+    height: 150px;
+    width: 100%;
+    padding:10px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
