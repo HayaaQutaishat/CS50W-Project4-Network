@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // all posts section
+    // all posts view
     document.querySelector('#all').addEventListener('click', function() {
       document.querySelector('#posts_view').style.display = 'block';
       document.querySelector('#new_post').style.display = 'none';
       document.querySelector('#profile_view').style.display = 'none';
       document.querySelector('#following_posts_view').style.display = 'none';
     });
-
     document.querySelector('#post_form').addEventListener('submit', new_post);
+    // following view
     document.querySelector('#followingg').addEventListener('click', load_following);
 
     function new_post(event) {
@@ -25,17 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(result => {
           console.log(result);
           load_new_post(result.post_id);
-          // clear the field after submitiing the form
+          // clear the text area field after submitiing the form
           document.querySelector('#post_text').value = "";
       });
       return false; 
     } 
     // By default, load all posts
-    
     load_posts();
-
 });
-
 
 function load_new_post(post_id) {
   
@@ -46,13 +43,22 @@ function load_new_post(post_id) {
       const post_div = document.createElement('div')
       post_div.className = "post_div";
       post_div.innerHTML = `
-      <span><strong><a id="post_${post.id}" href="">${post.creator}</a></strong></span>
-      <span id="time"><small><em>${post.date}</em></small></span><br><br>
-      <span>${post.post}</span><br><br>
-      <button id="likes" type="button" class="btn btn-primary">
-      Likes <span class="badge badge-light">0</span>
+      <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
+      <hr>
+      <p class="card-subtitle mb-2 text-muted"> 
+      <small><em>${post.date}</em></small>
+      </p>
+      <span>${post.post}</span><br>
+      <button class="btn like">
+      <svg xmls="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hear-fill like" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+      </svg>
       </button>
+    <span class="margin"> 
+          0 likes
+    </span>
     `;
+    // preapend: to append element at the top of DOM
     document.querySelector('#posts_view').prepend(post_div);      
   });
 }
@@ -64,7 +70,6 @@ function load_posts(){
   // Show posts view
   document.querySelector('#posts_view').style.display = 'block';
   
-
 fetch('/posts')
 .then(response => response.json())
 .then(posts => {
@@ -74,18 +79,24 @@ fetch('/posts')
       post_div.className = "post_div";
       post_div.innerHTML = `
       <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
-      <span id="time"><small><em>${post.date}</em></small></span><br><br>
-      <span>${post.post}</span><br><br>
-      <button id="likes" type="button" class="btn btn-primary">
-      Likes <span class="badge badge-light">0</span>
+      <hr>
+      <p class="card-subtitle mb-2 text-muted"> 
+      <small><em>${post.date}</em></small>
+      </p>
+      <span>${post.post}</span><br>
+      <button class="btn like">
+      <svg xmls="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hear-fill like" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+      </svg>
       </button>
+    <span class="margin"> 
+          0 likes
+    </span>
     `;
       document.querySelector('#posts_view').append(post_div);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
     })
-
 });
-
 }
 
 
@@ -96,7 +107,7 @@ function profile(user) {
     document.querySelector('#posts_view').style.display = 'none';
     document.querySelector('#profile_view').style.display = 'block';
 
-
+    // create new div element for profile
     div_profile = document.createElement('div');
     document.querySelector('#profile_view').append(div_profile);
     div_profile.innerHTML = `
@@ -161,9 +172,7 @@ function profile(user) {
           document.querySelector('#profile_view').append(div_post);
         })
 })
-
 }
-
 
 function load_following() {
 
@@ -173,8 +182,6 @@ function load_following() {
   document.querySelector('#profile_view').style.display = 'none';
   document.querySelector('#following_posts_view').style.display = 'block';
 
-  
-  
   fetch('/following_posts')
   .then(response => response.json())
   .then(posts => {

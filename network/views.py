@@ -97,6 +97,7 @@ def load_new_post(request, post_id):
 def profile(request, user):
     # clicked on user
     user = User.objects.get(username=user)
+    # user's posts
     user_posts = Post.objects.filter(creator=user).order_by('-date')
 
     posts = []
@@ -105,6 +106,7 @@ def profile(request, user):
 
     # profile of logged in user
     user_profile = Profile.objects.get(user=request.user)
+    # user's following
     x = user_profile.following.all()
     following_status = user in user_profile.following.all()
 
@@ -153,16 +155,13 @@ def follow(request, user):
 
 @login_required
 def following_posts(request):
-    # get profile of logged in user (lol)
+    # get profile of logged in user 
     profile = Profile.objects.get(user=request.user)
-    # following of logged in user (haya)
+    # following of logged in user 
     users = [user for user in profile.following.all()]
     for u in users:
         posts = Post.objects.filter(creator=u)
     return JsonResponse([post.serialize() for post in posts], safe=False)
-
-
-
 
 
 
