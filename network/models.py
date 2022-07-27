@@ -34,12 +34,16 @@ class Post(models.Model):
         return post
 
 
-# class Follow(models.Model):
-#     follower = models.ManyToManyField(User, blank=True, related_name="follower")
-#     following = models.ManyToManyField(User, blank=True, related_name="following")
-#     follower = models.ForeignKey(User, on_delete=models.PROTECT, related_name='follower')
-#     following = models.ForeignKey(User, on_delete=models.PROTECT, related_name='following')
+class Profile(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    follower = models.ManyToManyField(User, blank=True, related_name="follower")
+    following = models.ManyToManyField(User, blank=True, related_name="following")
 
+
+    @classmethod
+    def create(cls, user, ):
+        profile = cls(user=user)
+        return profile
 
     def __str__(self):
-        return f"{self.followers}"
+        return f'{self.user}'
