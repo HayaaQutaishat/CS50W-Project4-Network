@@ -1,4 +1,4 @@
-.post_div {
+.post_element {
     border-style: solid;
     border-width: thin;
     border-color: #DCDCDC;
@@ -18,4 +18,26 @@
     padding:10px;
     margin-bottom: 5px;
     margin-top: 5px;
+}
+
+#pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#paginated_btn {
+    width: 40px;
+    height: 40px;
+    appearance: none;
+    border-radius: 5px;
+    border-width: thin;
+    /* space btw buttons */
+    margin: 0 4px;
+    
+}
+
+#paginated_btn:hover {
+    background-color: gray;
 }

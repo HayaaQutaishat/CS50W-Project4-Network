@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import User, Post, Profile
-
+from django.core.paginator import Paginator
 
 def index(request):
     return render(request, "network/index.html")
@@ -65,8 +65,6 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
-
-
 def new_post(request):
 
     # adding a new post must be via POST
@@ -82,6 +80,7 @@ def new_post(request):
     post = Post.create(post=post, creator=creator)
     post.save()
     return JsonResponse({"post_id": post.id }, status=201)
+
 
 def posts(request):
     # All posts
@@ -164,6 +163,15 @@ def following_posts(request):
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
-
-
+# @login_required
+# def like_status(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         post_id = data.get("id")
+#         post = Post.objects.get(id=post_id)
+#         user = User.objects.get(username=request.user)
+#         liked = False
+#         if user in post.likes.all():
+#             liked = True
+#         return JsonResponse({'status': 201, 'liked': liked})
 

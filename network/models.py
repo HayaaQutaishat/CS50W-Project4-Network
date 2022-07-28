@@ -14,8 +14,8 @@ class User(AbstractUser):
 class Post(models.Model):
     post = models.TextField(blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    likes = models.ManyToManyField(User, related_name="liked_posts")
     date = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(User, blank=True ,related_name="likes")
 
     def __str__(self):
         return f"{self.post}"
@@ -26,6 +26,7 @@ class Post(models.Model):
             "post": self.post,
             "creator": self.creator.username,
             "date": self.date.strftime("%A, %B %e, %Y"),
+           
         }
 
     @classmethod
