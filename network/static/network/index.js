@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(result => {
           console.log(result);
-          load_new_post(result.post_id);
+          load_posts(result.post_id);
           // clear the text area field after submitiing the form
           document.querySelector('#post_text').value = "";
       });
@@ -45,6 +45,7 @@ fetch('/posts')
 .then(response => response.json())
 .then(posts => {
     console.log(posts);
+  
 
     const post_element = document.querySelector('#posts_view');
     const pagination_element = document.querySelector('#pagination')
@@ -64,10 +65,10 @@ fetch('/posts')
 
       for (let i = 0; i < paginatedPosts.length; i++) {
         let post = paginatedPosts[i];
-          let post_element = document.createElement('div')
+
+          let post_element = document.createElement('div');
           post_element.className = "post_element";
 
-    
           post_element.innerHTML = `
           <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
           <hr>
@@ -76,11 +77,26 @@ fetch('/posts')
           </p>
           <span>${post.post}</span><br>
           <br>
-          <i class="fa-solid fa-thumbs-up"></i> ${post.likes}Likes
+          <i class="fa-solid fa-thumbs-up"></i> 0 Likes
+          
         `;
-      // document.querySelector('#posts_view').append(post_element);
+
       wrapper.append(post_element);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
+
+        // create Edit button
+      fetch('get_user')
+          .then(response => response.json())
+          .then(data => {
+            // show edit button only for user who created the post
+            if (post.creator === data.user_requesting) {
+              let edit_btn = document.createElement('a');
+              edit_btn.className = "badge badge-primary";
+              edit_btn.innerText = "Edit";
+              post_element.append(edit_btn);
+              edit_btn.addEventListener('click', () => edit_post(post.id, post.post, post_element));
+            }
+          });
       }
     }
     function SetUpPagination(posts, wrapper, rows_per_page) {
@@ -108,45 +124,52 @@ fetch('/posts')
     SetUpPagination(posts, pagination_element, rows);
 
 
+    function edit_post(post_id, post_text, post_element) {
+
+      // console.log(post_text);
+      let edit_post_div = document.createElement('div');
+      edit_post_div.innerHTML = `
+      <form id="edit_form">
+        <textarea id="xxx" name="xxx" autofocus class="form-control">${post_text}</textarea><br>
+        <input type="submit" value="Save" class="btn btn-primary"/>
+      </form>
+      `
+      post_element.append(edit_post_div);
+      document.querySelector('#edit_form').addEventListener('submit',() => edit(post_id));
+    }
 
 });
 }
 
-function load_new_post(post_id) {
-  
-  fetch(`/post/${post_id}`)
+
+function edit(post_id) {
+
+  const post = document.querySelector('#xxx').value;
+  console.log(post);
+  fetch(`/edit/${post_id}`, {
+    method: 'POST',
+    body: JSON.stringify({
+        post: post,
+    })
+  })
   .then(response => response.json())
-  .then(post => {
-      console.log(post);
-      const post_div = document.createElement('div')
-      post_div.className = "post_div";
-      post_div.innerHTML = `
-      <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
-      <hr>
-      <p class="card-subtitle mb-2 text-muted"> 
-      <small><em>${post.date}</em></small>
-      </p>
-      <span>${post.post}</span><br>
-      <button class="btn like">
-      <svg xmls="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hear-fill like" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
-      </svg>
-      </button>
-    <span class="margin"> 
-          0 likes
-    </span>
-    `;
-    // preapend: to append element at the top of DOM
-    document.querySelector('#posts_view').prepend(post_div);      
+  .then(result => {
+      // Print result
+      console.log(result);
   });
+  return false; 
+
 }
 
-function profile(user) {
 
+
+function profile(user) {
+  
     // Show the profile view and hide other views
     document.querySelector('#new_post').style.display = 'none';
     document.querySelector('#posts_view').style.display = 'none';
     document.querySelector('#profile_view').style.display = 'block';
+    document.querySelector('#pagination').style.display = 'none';
 
     // create new div element for profile
     div_profile = document.createElement('div');
@@ -158,6 +181,7 @@ function profile(user) {
     .then(response => response.json())
     .then(data => {
         console.log(data);
+        
         
         // if logged in user not clicked user show follow button
         if (user !== data[4]["username"]){
@@ -205,12 +229,13 @@ function profile(user) {
         document.querySelector('#profile_view').append(followers);
         document.querySelector('#profile_view').append(following);
 
+
         data[3].forEach((post) => {
-          const div_post = document.createElement('div');
-          div_post.className = "post_div";
-          div_post.id = `post_${post.id}`
-          div_post.innerHTML =  `<p>${post['date']}</p><p>${post['post']}</p><br>`
-          document.querySelector('#profile_view').append(div_post);
+          const post_element = document.createElement('div');
+          post_element.className = "post_element";
+          post_element.id = `post_${post.id}`
+          post_element.innerHTML =  `<p>${post['date']}</p><p>${post['post']}</p><br>`
+          document.querySelector('#profile_view').append(post_element);
         })
 })
 }

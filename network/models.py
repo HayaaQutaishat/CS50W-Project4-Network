@@ -26,7 +26,6 @@ class Post(models.Model):
             "post": self.post,
             "creator": self.creator.username,
             "date": self.date.strftime("%A, %B %e, %Y"),
-           
         }
 
     @classmethod

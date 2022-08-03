@@ -88,11 +88,6 @@ def posts(request):
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
-def load_new_post(request, post_id):
-    post = Post.objects.get(pk=post_id)
-    return JsonResponse(post.serialize(), safe=False)
-
-
 def profile(request, user):
     # clicked on user
     user = User.objects.get(username=user)
@@ -108,7 +103,9 @@ def profile(request, user):
     # user's following
     x = user_profile.following.all()
     following_status = user in user_profile.following.all()
+    follower_status = user in user_profile.follower.all()
 
+    
     # num_followers = user.following.count()
     num_followers = 0
     num_following = 0
@@ -118,9 +115,8 @@ def profile(request, user):
         if user in u.following.all():
             num_followers += 1
 
-    return JsonResponse([user.serialize(), num_followers, num_following, posts, logged_user.serialize(), following_status], safe=False)
+    return JsonResponse([user.serialize(), num_followers, num_following, posts, logged_user.serialize(), following_status, follower_status], safe=False)
     
-
 
 @login_required
 @csrf_exempt
@@ -129,8 +125,7 @@ def follow(request, user):
         return JsonResponse({"error": "POST request required."}, status=400)
     data = json.loads(request.body)
     follow = data.get("follow")
-    print(follow)
-    
+ 
     # clicked in user
     user = User.objects.get(username=user)
     user_profile = Profile.objects.get(user=request.user)
@@ -140,9 +135,6 @@ def follow(request, user):
         num_followers += 1
         user_profile.following.add(user)
         user_profile.save()
-        # print(num_followers)
-
-        # print("hi")
 
         return JsonResponse({'status': 201, 'action': "Follow"})
     elif follow:
@@ -175,3 +167,25 @@ def following_posts(request):
 #             liked = True
 #         return JsonResponse({'status': 201, 'liked': liked})
 
+
+def user_requesting(request):
+    
+    if str(request.user) != 'AnonymousUser':
+        user = str(request.user)
+    return JsonResponse({'user_requesting': user})
+
+
+@login_required
+def edit(request, post_id):
+     if request.method == "POST":
+        data = json.loads(request.body)
+        # the new post after editing
+        new_post = data.get("post", "")
+        post = Post.objects.get(pk=post_id)
+        # update the value of this post in DB, and save it
+        post.post = new_post
+        post.save()
+        return JsonResponse({"data": data })
+
+    
+    
