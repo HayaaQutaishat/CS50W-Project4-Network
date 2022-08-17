@@ -34,10 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     load_posts();
 });
 
-
  // To load all posts
 function load_posts(){ 
-  
   // Show posts view
   document.querySelector('#posts_view').style.display = 'block';
   
@@ -45,7 +43,6 @@ fetch('/posts')
 .then(response => response.json())
 .then(posts => {
     console.log(posts);
-  
     const post_element = document.querySelector('#posts_view');
     const pagination_element = document.querySelector('#pagination')
 
@@ -67,7 +64,6 @@ fetch('/posts')
 
           let post_element = document.createElement('div');
           post_element.className = "post_element";
-
           post_element.innerHTML = `
           <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
           <hr>
@@ -75,8 +71,7 @@ fetch('/posts')
           <small><em>${post.date}</em></small>
           </p>
           <span>${post.post}</span><br>
-          <br>
-        `;
+          <br>`;
       wrapper.append(post_element);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
 
@@ -88,21 +83,29 @@ fetch('/posts')
         })
       })
       .then(response => response.json())
-      .then(result => {    
-        
-          console.log(result.like_status)
-          if (result.like_status === false) {
-            class_name = "fa fa-thumbs-up"
+      .then(data => {    
+          // console.log(result.like_status)
+          console.log(data)
+          let like_btn = document.createElement('button');
+          like_btn.style.border = 'none';
+          let num_likes = document.createElement('p');
+          num_likes.innerHTML =  `<p><small>${data.num_likes} Likes</small></p>`
+          if (data.like_status === false) {
+            // class_name = "fa-regular fa-heart"
+            like_btn.className = "fa-regular fa-heart";
           } else {
-            class_name = "fa fa-thumbs-down"
+            // class_name = "fa-solid fa-heart"
+            like_btn.className ="fa-solid fa-heart";
           }
           // create like icon
           let like_icon = document.createElement('i');
-          like_icon.innerHTML = `<i id="like_toggle_${i}" class="${class_name}"></i>`
+          // like_icon.innerHTML = `<i id="like_toggle_${i}" class="${class_name}"></i><br>`
           // when users click on like/unlike 
-          like_icon.addEventListener('click', (event) => like(event,result.data.post_id, class_name));
-          
-          post_element.append(like_icon)
+          let post_id = data.data.post_id
+          like_btn.addEventListener('click', (event) => like(event, post_id, like_btn));
+          // post_element.append(like_icon)
+          post_element.append(like_btn)
+          post_element.append(num_likes)
       });
 
       // create Edit button
@@ -163,15 +166,13 @@ fetch('/posts')
 });
 }
 
-function like(event, post_id, class_name) {
-
-  console.log(class_name)
-  if(class_name === "fa fa-thumbs-up"){
-    event.target.classList.remove("fa-thumbs-up")
-    event.target.classList.add("fa-thumbs-down")
+function like(event, post_id, like_btn) {
+  if (like_btn.className === "fa-regular fa-heart"){
+    like_btn.className = "fa-solid fa-heart";
+    location.reload();
   } else {
-    event.target.classList.remove("fa-thumbs-down")
-    event.target.classList.add("fa-thumbs-up")
+    like_btn.className = "fa-regular fa-heart";
+    location.reload();
   }
 
   fetch('/like', {
@@ -183,8 +184,10 @@ function like(event, post_id, class_name) {
     .then(response => response.json())
     .then(result => {
         console.log(result);
-        console.log(result.likes);
     });
+
+
+
 }
 
 function edit(post_id) {
@@ -294,17 +297,13 @@ function load_following() {
         const post_div = document.createElement('div')
         post_div.className = "post_div";
         post_div.innerHTML = `
-        <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span><br>
+        <span><strong><a id="post_${post.id}" href="#">${post.creator_id}</a></strong></span><br>
         <span id="time"><small><em>${post.date}</em></small></span><br><br>
         <span>${post.post}</span><br><br>
-        <button id="likes" type="button" class="btn btn-primary">
-        Likes <span class="badge badge-light">0</span>
-        </button>
-      `;
+        <button id="likes" type="button" class="btn btn-primary">Likes <span class="badge badge-light">0</span></button>`;
       post_div.style.border = "thin inset #C8C8C8";
       post_div.style.marginTop = "30px";
       post_div.style.padding = "10px 10px 10px 10px";
-
       document.querySelector('#following_posts_view').append(post_div);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
       })

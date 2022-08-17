@@ -73,8 +73,6 @@ def new_post(request):
 
     # Check post content
     data = json.loads(request.body)
-    print(data)
-
     # Get post content and creator, then save the post to db
     post = data.get("post", "")
     creator = request.user
@@ -107,18 +105,10 @@ def profile(request, user):
     following_status = request.user in yy
     follower_status = request.user in xx
   
-    # num_followers = user.following.count()
     num_followers = user_profile.follower.count()
     num_following = user_profile.following.count()
     logged_user = request.user
 
-    # for u in Profile.objects.all():
-    #     if user in u.following.all():
-    #         num_followers += 1
-
-    # for u in Profile.objects.all():
-    #     if user in u.follower.all():
-    #         num_following += 1
 
     return JsonResponse([user.serialize(), num_followers, num_following, posts, logged_user.serialize(), following_status, follower_status], safe=False)
     
@@ -150,24 +140,22 @@ def follow(request, username):
         following_user.save()
         return JsonResponse({'status': 201, 'action': "Follow"})
 
- 
 @login_required
 def following_posts(request):
     # get profile of logged in user 
     profile = Profile.objects.get(user=request.user)
     # following of logged in user
     users = [user for user in profile.following.all()]
+    following_posts = []
     for u in users:
         posts = Post.objects.filter(creator=u)
-    return JsonResponse([post.serialize() for post in posts], safe=False)
-
+        following_posts = following_posts + list(posts.values())
+    return JsonResponse(following_posts, safe=False)
 
 def user_requesting(request):
-    
     if str(request.user) != 'AnonymousUser':
         user = str(request.user)
     return JsonResponse({'user_requesting': user})
-
 
 @login_required
 def edit(request, post_id):
@@ -191,12 +179,14 @@ def like_status(request):
         post_id = data.get("post_id", "")
         user = User.objects.get(username=request.user)
         post = Post.objects.get(id=post_id)
-
+        num_likes = post.likes.count()
+        
         like_status = False
         # if the logged_in user is already liked this post then << like_status=True
         if user in post.likes.all():
             like_status = True
-        return JsonResponse({"data": data, "like_status": like_status})
+        return JsonResponse({"data": data, "like_status": like_status, "num_likes": num_likes})
+
     else:
         return JsonResponse({"error": "POST request required."}, status=400)
 
@@ -206,20 +196,15 @@ def like_status(request):
 def like(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        post_id = data.get("post_id")
-
-        post = Post.objects.get(id=post_id)
         user = User.objects.get(username=request.user)
-
+        post_id = data.get("post_id")
+        post = Post.objects.get(id=post_id)
         if user not in post.likes.all():
             post.likes.add(user)
-            like_status = True
         else:
             post.likes.remove(user)
-            like_status = False
         post.save()
-        likes = post.likes.count()
-        return JsonResponse({'like_status': like_status, 'likes': likes})
+        return JsonResponse({'status': 201})
 
 
     
