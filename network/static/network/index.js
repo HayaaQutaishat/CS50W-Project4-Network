@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-
+    
     // all posts view
     document.querySelector('#all').addEventListener('click', function() {
       document.querySelector('#posts_view').style.display = 'block';
@@ -65,7 +65,7 @@ fetch('/posts')
           let post_element = document.createElement('div');
           post_element.className = "post_element";
           post_element.innerHTML = `
-          <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
+          <span><strong><a id="post_${post.id}" href="#" style="color:black">${post.creator}</a></strong></span>
           <hr>
           <p class="card-subtitle mb-2 text-muted"> 
           <small><em>${post.date}</em></small>
@@ -294,6 +294,7 @@ function load_following() {
   .then(posts => {
       console.log(posts);
       posts.forEach(post => {
+        console.log(post);
         const post_div = document.createElement('div')
         post_div.className = "post_div";
         post_div.innerHTML = `
@@ -301,8 +302,8 @@ function load_following() {
         <span id="time"><small><em>${post.date}</em></small></span><br><br>
         <span>${post.post}</span><br><br>
         <button id="likes" type="button" class="btn btn-primary">Likes <span class="badge badge-light">0</span></button>`;
-      post_div.style.border = "thin inset #C8C8C8";
-      post_div.style.marginTop = "30px";
+      post_div.style.border = "thin solid #B8B8B8";
+      post_div.style.marginTop = "20px";
       post_div.style.padding = "10px 10px 10px 10px";
       document.querySelector('#following_posts_view').append(post_div);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
