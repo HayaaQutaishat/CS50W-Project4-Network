@@ -5,7 +5,7 @@
 ### Project purpose :
 
 Design a Twitter-like social network website for making posts and following users. (Single Page aApplication)
-Using Python, JavaScript, HTML, and CSS, complete the implementation of a social network that allows users to make posts, follow other users, and “like” posts. You must fulfill the following requirements:
+Using Python, JavaScript, HTML, and CSS, complete the implementation of a social network that allows users to make posts, follow other users, and “like” posts. 
 
 
 <img width="1440" alt="Screen Shot 2022-08-17 at 6 05 52 PM" src="https://user-images.githubusercontent.com/95029840/185188677-e66b517f-f5fd-4575-9243-967cf0c0a6eb.png">
