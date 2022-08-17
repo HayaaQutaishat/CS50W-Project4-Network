@@ -41,3 +41,13 @@
 #paginated_btn:hover {
     background-color: gray;
 }
+
+.fa {
+    font-size: 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .fa:hover {
+    color: darkblue;
+  }

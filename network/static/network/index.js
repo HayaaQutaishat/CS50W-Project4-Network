@@ -46,7 +46,6 @@ fetch('/posts')
 .then(posts => {
     console.log(posts);
   
-
     const post_element = document.querySelector('#posts_view');
     const pagination_element = document.querySelector('#pagination')
 
@@ -77,28 +76,53 @@ fetch('/posts')
           </p>
           <span>${post.post}</span><br>
           <br>
-          <i class="fa-solid fa-thumbs-up"></i> 0 Likes
-          
         `;
-
       wrapper.append(post_element);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
 
-        // create Edit button
+      // check if the post is already liked and show like or unlike button to user
+      fetch('/like_status', {
+        method: 'POST',
+        body: JSON.stringify({
+            post_id: post.id,
+        })
+      })
+      .then(response => response.json())
+      .then(result => {    
+        
+          console.log(result.like_status)
+          if (result.like_status === false) {
+            class_name = "fa fa-thumbs-up"
+          } else {
+            class_name = "fa fa-thumbs-down"
+          }
+          // create like icon
+          let like_icon = document.createElement('i');
+          like_icon.innerHTML = `<i id="like_toggle_${i}" class="${class_name}"></i>`
+          // when users click on like/unlike 
+          like_icon.addEventListener('click', (event) => like(event,result.data.post_id, class_name));
+          
+          post_element.append(like_icon)
+      });
+
+      // create Edit button
       fetch('get_user')
-          .then(response => response.json())
-          .then(data => {
-            // show edit button only for user who created the post
-            if (post.creator === data.user_requesting) {
-              let edit_btn = document.createElement('a');
-              edit_btn.className = "badge badge-primary";
-              edit_btn.innerText = "Edit";
-              post_element.append(edit_btn);
-              edit_btn.addEventListener('click', () => edit_post(post.id, post.post, post_element));
-            }
-          });
+      .then(response => response.json())
+      .then(data => {
+        
+        // show edit button only for user who created the post
+        if (post.creator === data.user_requesting) {
+          let edit_btn = document.createElement('a');
+          edit_btn.className = "badge badge-primary";
+          edit_btn.innerText = "Edit";
+          post_element.append(edit_btn);
+          edit_btn.addEventListener('click', () => edit_post(post.id, post.post, post_element));
+        }
+      });
+          
       }
     }
+
     function SetUpPagination(posts, wrapper, rows_per_page) {
       wrapper.innerHTML = "";
       // round up to get all posts and not lose any of them
@@ -123,14 +147,12 @@ fetch('/posts')
     display_posts(posts, post_element, rows, current_page);
     SetUpPagination(posts, pagination_element, rows);
 
-
     function edit_post(post_id, post_text, post_element) {
 
-      // console.log(post_text);
       let edit_post_div = document.createElement('div');
       edit_post_div.innerHTML = `
       <form id="edit_form">
-        <textarea id="xxx" name="xxx" autofocus class="form-control">${post_text}</textarea><br>
+        <textarea id="text_post" name="text_post" autofocus class="form-control">${post_text}</textarea><br>
         <input type="submit" value="Save" class="btn btn-primary"/>
       </form>
       `
@@ -141,11 +163,35 @@ fetch('/posts')
 });
 }
 
+function like(event, post_id, class_name) {
+
+  console.log(class_name)
+  if(class_name === "fa fa-thumbs-up"){
+    event.target.classList.remove("fa-thumbs-up")
+    event.target.classList.add("fa-thumbs-down")
+  } else {
+    event.target.classList.remove("fa-thumbs-down")
+    event.target.classList.add("fa-thumbs-up")
+  }
+
+  fetch('/like', {
+    method: 'POST',
+    body: JSON.stringify({
+        post_id: post_id,
+    })
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result);
+        console.log(result.likes);
+    });
+}
 
 function edit(post_id) {
 
-  const post = document.querySelector('#xxx').value;
-  console.log(post);
+  // send the value of post after editing to the backend
+  const post = document.querySelector('#text_post').value;
+  
   fetch(`/edit/${post_id}`, {
     method: 'POST',
     body: JSON.stringify({
@@ -160,8 +206,6 @@ function edit(post_id) {
   return false; 
 
 }
-
-
 
 function profile(user) {
   
@@ -183,52 +227,46 @@ function profile(user) {
         console.log(data);
         
         
-        // if logged in user not clicked user show follow button
+        // if logged_in user not the clicked_user show follow button
         if (user !== data[4]["username"]){
           follow_btn = document.createElement('button');
           follow_btn.className = "btn btn-primary";
           follow_btn.innerHTML = "Follow";
           document.querySelector('#profile_view').append(follow_btn);
-          console.log(data[5])
+          following_status = data[5]
 
           // when user click on other user's profile
-          if (data[5] == true) {
-            // if following_status = true
+          if (following_status == true) {
             follow_btn.innerHTML = "Unfollow";
-            follow = true
         } else {
-          // if following_status = false
           follow_btn.innerHTML = "Follow";
-          follow = false
         }
         // when user click on follow/unfollow button
           follow_btn.addEventListener('click', () => {
-            if (follow === true) {
-              follow_btn.innerHTML = "Unfollowed";
-            } else {
-              follow_btn.innerHTML = "Followed";
-            }
             fetch(`/follow/${user}`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    "follow": follow
+                    "following_status": following_status
                 })
             })
                 .then(response => response.json())
                 .then(result => {
                     console.log(result)
-                })
-        });
-        } 
 
-        
+                })   
+            if (following_status === true) {
+              follow_btn.innerHTML = "Unfollowed"; 
+            } else {
+              follow_btn.innerHTML = "Followed";
+            }
+        });
+        }
         const followers = document.createElement('p');
         followers.innerHTML = `Followers: ${data[1]}`;
         const following = document.createElement('p');
         following.innerHTML = `Following: ${data[2]}`;
         document.querySelector('#profile_view').append(followers);
         document.querySelector('#profile_view').append(following);
-
 
         data[3].forEach((post) => {
           const post_element = document.createElement('div');
@@ -256,13 +294,17 @@ function load_following() {
         const post_div = document.createElement('div')
         post_div.className = "post_div";
         post_div.innerHTML = `
-        <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span>
+        <span><strong><a id="post_${post.id}" href="#">${post.creator}</a></strong></span><br>
         <span id="time"><small><em>${post.date}</em></small></span><br><br>
         <span>${post.post}</span><br><br>
         <button id="likes" type="button" class="btn btn-primary">
         Likes <span class="badge badge-light">0</span>
         </button>
       `;
+      post_div.style.border = "thin inset #C8C8C8";
+      post_div.style.marginTop = "30px";
+      post_div.style.padding = "10px 10px 10px 10px";
+
       document.querySelector('#following_posts_view').append(post_div);
       document.querySelector(`#post_${post.id}`).addEventListener('click', event => profile(event.target.innerHTML))
       })

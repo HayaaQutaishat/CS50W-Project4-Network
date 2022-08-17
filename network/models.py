@@ -10,7 +10,6 @@ class User(AbstractUser):
             "username": self.username,
         }
 
-
 class Post(models.Model):
     post = models.TextField(blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")

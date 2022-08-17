@@ -73,6 +73,7 @@ def new_post(request):
 
     # Check post content
     data = json.loads(request.body)
+    print(data)
 
     # Get post content and creator, then save the post to db
     post = data.get("post", "")
@@ -89,7 +90,7 @@ def posts(request):
 
 
 def profile(request, user):
-    # clicked on user
+    # clicked on user (test)
     user = User.objects.get(username=user)
     # user's posts
     user_posts = Post.objects.filter(creator=user).order_by('-date')
@@ -98,74 +99,67 @@ def profile(request, user):
     for i in range(len(user_posts)):
         posts.append({'id': user_posts[i].id, 'date': user_posts[i].date.strftime('%H:%M %d %b %Y'), 'post': user_posts[i].post})
 
-    # profile of logged in user
-    user_profile = Profile.objects.get(user=request.user)
-    # user's following
-    x = user_profile.following.all()
-    following_status = user in user_profile.following.all()
-    follower_status = user in user_profile.follower.all()
-
-    
+    # profile of logged in user (Haya)
+    user_profile = Profile.objects.get(user=user)
+    # user's following (xx = test's following) (yy = test's followers)
+    xx =  user_profile.following.all()
+    yy =  user_profile.follower.all()
+    following_status = request.user in yy
+    follower_status = request.user in xx
+  
     # num_followers = user.following.count()
-    num_followers = 0
-    num_following = 0
+    num_followers = user_profile.follower.count()
+    num_following = user_profile.following.count()
     logged_user = request.user
 
-    for u in Profile.objects.all():
-        if user in u.following.all():
-            num_followers += 1
+    # for u in Profile.objects.all():
+    #     if user in u.following.all():
+    #         num_followers += 1
+
+    # for u in Profile.objects.all():
+    #     if user in u.follower.all():
+    #         num_following += 1
 
     return JsonResponse([user.serialize(), num_followers, num_following, posts, logged_user.serialize(), following_status, follower_status], safe=False)
     
 
 @login_required
 @csrf_exempt
-def follow(request, user):
+def follow(request, username):
     if request.method != 'POST':
         return JsonResponse({"error": "POST request required."}, status=400)
     data = json.loads(request.body)
-    follow = data.get("follow")
+    following_status = data.get("following_status")
  
-    # clicked in user
-    user = User.objects.get(username=user)
-    user_profile = Profile.objects.get(user=request.user)
-   
-    num_followers = user.following.count()
-    if not follow:
-        num_followers += 1
-        user_profile.following.add(user)
-        user_profile.save()
+    # clicked in user (example)
+    user_object = User.objects.get(username=username)
 
-        return JsonResponse({'status': 201, 'action': "Follow"})
-    elif follow:
-        user_profile.following.remove(user)
-        user_profile.save()
+    followed_user = Profile.objects.get(user=user_object) 
+    following_user = Profile.objects.get(user=request.user) 
+
+    if following_status:
+        following_user.following.remove(user_object)
+        followed_user.follower.remove(request.user)   
+        following_user.save()
+        followed_user.save()
         return JsonResponse({'status': 201, 'action': "Unfollow"})
-    return JsonResponse({}, status=404)
+    else:
+        following_user.following.add(user_object)
+        followed_user.follower.add(request.user)   
+        followed_user.save()
+        following_user.save()
+        return JsonResponse({'status': 201, 'action': "Follow"})
 
-
+ 
 @login_required
 def following_posts(request):
     # get profile of logged in user 
     profile = Profile.objects.get(user=request.user)
-    # following of logged in user 
+    # following of logged in user
     users = [user for user in profile.following.all()]
     for u in users:
         posts = Post.objects.filter(creator=u)
     return JsonResponse([post.serialize() for post in posts], safe=False)
-
-
-# @login_required
-# def like_status(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         post_id = data.get("id")
-#         post = Post.objects.get(id=post_id)
-#         user = User.objects.get(username=request.user)
-#         liked = False
-#         if user in post.likes.all():
-#             liked = True
-#         return JsonResponse({'status': 201, 'liked': liked})
 
 
 def user_requesting(request):
@@ -177,15 +171,56 @@ def user_requesting(request):
 
 @login_required
 def edit(request, post_id):
-     if request.method == "POST":
+    if request.method == "POST":
         data = json.loads(request.body)
-        # the new post after editing
+        # the value of new post after editing
         new_post = data.get("post", "")
         post = Post.objects.get(pk=post_id)
         # update the value of this post in DB, and save it
         post.post = new_post
         post.save()
         return JsonResponse({"data": data })
+
+    else:
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+
+def like_status(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        post_id = data.get("post_id", "")
+        user = User.objects.get(username=request.user)
+        post = Post.objects.get(id=post_id)
+
+        like_status = False
+        # if the logged_in user is already liked this post then << like_status=True
+        if user in post.likes.all():
+            like_status = True
+        return JsonResponse({"data": data, "like_status": like_status})
+    else:
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+
+@login_required
+@csrf_exempt
+def like(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        post_id = data.get("post_id")
+
+        post = Post.objects.get(id=post_id)
+        user = User.objects.get(username=request.user)
+
+        if user not in post.likes.all():
+            post.likes.add(user)
+            like_status = True
+        else:
+            post.likes.remove(user)
+            like_status = False
+        post.save()
+        likes = post.likes.count()
+        return JsonResponse({'like_status': like_status, 'likes': likes})
+
 
     
     
