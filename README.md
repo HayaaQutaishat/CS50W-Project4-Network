@@ -44,3 +44,4 @@ Using JavaScript, you should asynchronously let the server know to update the li
 ## YouTube Video:
 
 Youtube link: A short video that shows every element of the specification: "https://www.youtube.com/watch?v=MYOHqh1qSpU&t=1s"
+
