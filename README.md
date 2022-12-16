@@ -1,6 +1,6 @@
-# CS50W-Project4-Network
+# Twitter-like social network website
 
-## CS50 Web - Programming with Python and JavaScript. 
+
 
 ### Project purpose :
 
